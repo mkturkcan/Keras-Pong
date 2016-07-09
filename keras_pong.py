@@ -64,7 +64,7 @@ def learning_model(input_dim=80*80):
   model.add(Dense(200, activation = 'relu'))
   model.add(Dense(number_of_inputs, activation='softmax'))
   opt = RMSprop(lr=learning_rate)
-  model.compile(loss='mse', optimizer=opt) #CE should be better
+  model.compile(loss='categorical_crossentropy', optimizer=opt)
   return model
 
 model = learning_model()
