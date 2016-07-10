@@ -24,13 +24,13 @@ from keras.layers.convolutional import UpSampling2D, Convolution2D
 input_dim = 80 * 80
 gamma = 0.99
 update_frequency = 10
-learning_rate = 0.01
+learning_rate = 0.001
 resume = False
 render = False
 
 #Initialize
 env = gym.make("Pong-v0")
-number_of_inputs = env.action_space.n #This is incorrect for Pong
+number_of_inputs = env.action_space.n #This is incorrect for Pong (?)
 observation = env.reset()
 prev_x = None
 xs, dlogps, drs, probs = [],[],[],[]
@@ -57,13 +57,21 @@ def discount_rewards(r):
   return discounted_r
 
 #Define the main model (WIP)
-def learning_model(input_dim=80*80):
+def learning_model(input_dim=80*80, model_type=1):
   model = Sequential()
-  model.add(Reshape((1,80,80), input_shape=(input_dim,)))
-  model.add(Flatten())
-  model.add(Dense(200, activation = 'relu'))
-  model.add(Dense(number_of_inputs, activation='softmax'))
-  opt = RMSprop(lr=learning_rate)
+  if model_type==0:
+    model.add(Reshape((1,80,80), input_shape=(input_dim,)))
+    model.add(Flatten())
+    model.add(Dense(200, activation = 'relu'))
+    model.add(Dense(number_of_inputs, activation='softmax'))
+    opt = RMSprop(lr=learning_rate)
+  else:
+    model.add(Reshape((1,80,80), input_shape=(input_dim,)))
+    model.add(Convolution2D(64, 9, 9, subsample=(2, 2), border_mode='same', activation='relu', init='he_uniform'))
+    model.add(Flatten())
+    model.add(Dense(64, activation='relu', init='he_uniform'))
+    model.add(Dense(number_of_inputs, activation='softmax'))
+    opt = Adam(lr=learning_rate)
   model.compile(loss='categorical_crossentropy', optimizer=opt)
   return model
 
