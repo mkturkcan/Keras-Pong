@@ -73,6 +73,8 @@ def learning_model(input_dim=80*80, model_type=1):
     model.add(Dense(number_of_inputs, activation='softmax'))
     opt = Adam(lr=learning_rate)
   model.compile(loss='categorical_crossentropy', optimizer=opt)
+  if resume == True:
+    model.load_weights('pong_model_checkpoint.h5')
   return model
 
 model = learning_model()
@@ -126,7 +128,8 @@ while True:
       train_y = []
       probs = []
       #Save a checkpoint of the model
-      #model.save_weights('pong_model_checkpoint.h5')
+      os.remove('pong_model_checkpoint.h5') if os.path.exists('pong_model_checkpoint.h5') else None
+      model.save_weights('pong_model_checkpoint.h5')
     #Reset the current environment nad print the current results
     running_reward = reward_sum if running_reward is None else running_reward * 0.99 + reward_sum * 0.01
     print 'Environment reset imminent. Total Episode Reward: %f. Running Mean: %f' % (reward_sum, running_reward)
