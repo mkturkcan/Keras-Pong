@@ -23,7 +23,7 @@ from keras.layers.convolutional import UpSampling2D, Convolution2D
 #Script Parameters
 input_dim = 80 * 80
 gamma = 0.99
-update_frequency = 10
+update_frequency = 1
 learning_rate = 0.001
 resume = False
 render = False
@@ -31,6 +31,7 @@ render = False
 #Initialize
 env = gym.make("Pong-v0")
 number_of_inputs = env.action_space.n #This is incorrect for Pong (?)
+#number_of_inputs = 1
 observation = env.reset()
 prev_x = None
 xs, dlogps, drs, probs = [],[],[],[]
@@ -67,9 +68,9 @@ def learning_model(input_dim=80*80, model_type=1):
     opt = RMSprop(lr=learning_rate)
   else:
     model.add(Reshape((1,80,80), input_shape=(input_dim,)))
-    model.add(Convolution2D(64, 9, 9, subsample=(2, 2), border_mode='same', activation='relu', init='he_uniform'))
+    model.add(Convolution2D(32, 9, 9, subsample=(4, 4), border_mode='same', activation='relu', init='he_uniform'))
     model.add(Flatten())
-    model.add(Dense(64, activation='relu', init='he_uniform'))
+    model.add(Dense(16, activation='relu', init='he_uniform'))
     model.add(Dense(number_of_inputs, activation='softmax'))
     opt = Adam(lr=learning_rate)
   model.compile(loss='categorical_crossentropy', optimizer=opt)
@@ -89,14 +90,17 @@ while True:
   prev_x = cur_x
   #Predict probabilities from the Keras model
   aprob = ((model.predict(x.reshape([1,x.shape[0]]), batch_size=1).flatten()))
-  aprob = aprob/np.sum(aprob)
+  #aprob = aprob/np.sum(aprob)
   #Sample action
-  action = np.random.choice(number_of_inputs, 1, p=aprob)
+  #action = np.random.choice(number_of_inputs, 1, p=aprob)
   #Append features and labels for the episode-batch
   xs.append(x)
   probs.append((model.predict(x.reshape([1,x.shape[0]]), batch_size=1).flatten()))
+  aprob = aprob/np.sum(aprob)
+  action = np.random.choice(number_of_inputs, 1, p=aprob)[0]
   y = np.zeros([number_of_inputs])
   y[action] = 1
+  #print action
   dlogps.append(np.array(y).astype('float32'))
   observation, reward, done, info = env.step(action)
   reward_sum += reward
