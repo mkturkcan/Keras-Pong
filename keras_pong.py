@@ -101,7 +101,7 @@ while True:
   y = np.zeros([number_of_inputs])
   y[action] = 1
   #print action
-  dlogps.append(np.array(y).astype('float32'))
+  dlogps.append(np.array(y).astype('float32') - aprob)
   observation, reward, done, info = env.step(action)
   reward_sum += reward
   drs.append(reward) 
@@ -121,9 +121,9 @@ while True:
     #Periodically update the model
     if episode_number % update_frequency == 0: 
       y_train = probs + learning_rate * np.squeeze(np.vstack(train_y)) #Hacky WIP
-      y_train[y_train<0] = 0
-      y_train[y_train>1] = 1
-      y_train = y_train / np.sum(np.abs(y_train), axis=1, keepdims=True)
+      #y_train[y_train<0] = 0
+      #y_train[y_train>1] = 1
+      #y_train = y_train / np.sum(np.abs(y_train), axis=1, keepdims=True)
       print 'Training Snapshot:'
       print y_train
       model.train_on_batch(np.squeeze(np.vstack(train_X)), y_train)
